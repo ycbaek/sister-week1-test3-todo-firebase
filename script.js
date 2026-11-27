@@ -1,3 +1,17 @@
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDYxSrH_tmARIRysV8zGJXmNzmC8RCwd5o",
+  authDomain: "sister-week1-test3-todo.firebaseapp.com",
+  databaseURL: "https://sister-week1-test3-todo-default-rtdb.firebaseio.com/",
+  projectId: "sister-week1-test3-todo",
+  storageBucket: "sister-week1-test3-todo.firebasestorage.app",
+  messagingSenderId: "1046096042489",
+  appId: "1:1046096042489:web:d0c8ed4bb2afa98c41c528",
+};
+
+const app = initializeApp(firebaseConfig);
+
 const STORAGE_KEY = "todo-list";
 
 const form = document.querySelector("#add-form");
