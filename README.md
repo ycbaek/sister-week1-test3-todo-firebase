@@ -22,6 +22,20 @@ Then visit http://127.0.0.1:8765.
 
 Adding a task writes it under `todos` in Realtime Database. The list loads from that path, including after a refresh.
 
+## Deploy on Vercel
+
+`firebase-config.js` stays off GitHub. Vercel creates it during the build from these environment variables:
+
+- `FIREBASE_API_KEY`
+- `FIREBASE_AUTH_DOMAIN`
+- `FIREBASE_DATABASE_URL`
+- `FIREBASE_PROJECT_ID`
+- `FIREBASE_STORAGE_BUCKET`
+- `FIREBASE_MESSAGING_SENDER_ID`
+- `FIREBASE_APP_ID`
+
+Use the values in your local `firebase-config.js`. Add them in the Vercel project settings, then redeploy.
+
 ## Files
 
 | File | Purpose |

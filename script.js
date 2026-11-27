@@ -1,10 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getDatabase, onValue, push, ref, remove, update } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js";
-import { firebaseConfig } from "./firebase-config.js";
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-const todosRef = ref(db, "todos");
 
 const form = document.querySelector("#add-form");
 const input = document.querySelector("#new-todo");
@@ -17,11 +12,29 @@ const filters = document.querySelectorAll(".filter");
 let todos = [];
 let filter = "all";
 let editingId = null;
+let todosRef = null;
+
+const { firebaseConfig } = await import("./firebase-config.js").catch((error) => {
+  console.error(error);
+  showError(error);
+  return { firebaseConfig: null };
+});
+
+if (firebaseConfig) {
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+  todosRef = ref(db, "todos");
+}
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = input.value.trim();
   if (!text) return;
+
+  if (!todosRef) {
+    showError(new Error("Missing Firebase configuration."));
+    return;
+  }
 
   input.value = "";
   try {
@@ -177,29 +190,33 @@ function render() {
   empty.hidden = shown.length > 0;
 }
 
-onValue(
-  todosRef,
-  (snapshot) => {
-    const value = snapshot.val() || {};
-    todos = Object.entries(value)
-      .map(([id, item]) => ({
-        id,
-        text: typeof item?.text === "string" ? item.text : "",
-        done: item?.done === true,
-      }))
-      .filter((todo) => todo.text)
-      .reverse();
-    clearStatus();
-    if (!editingId) render();
-  },
-  (error) => showError(error)
-);
+if (todosRef) {
+  onValue(
+    todosRef,
+    (snapshot) => {
+      const value = snapshot.val() || {};
+      todos = Object.entries(value)
+        .map(([id, item]) => ({
+          id,
+          text: typeof item?.text === "string" ? item.text : "",
+          done: item?.done === true,
+        }))
+        .filter((todo) => todo.text)
+        .reverse();
+      clearStatus();
+      if (!editingId) render();
+    },
+    (error) => showError(error)
+  );
+}
 
 function showError(error) {
   console.error(error);
   status.hidden = false;
-  status.textContent =
-    "Firebase could not save the task. Allow read and write on todos in the Realtime Database rules.";
+  const missingConfig = !todosRef || error?.message === "Missing Firebase configuration.";
+  status.textContent = missingConfig
+    ? "This site is missing its Firebase configuration, so a task cannot be saved."
+    : "Firebase could not save the task. Allow read and write on todos in the Realtime Database rules.";
 }
 
 function clearStatus() {
