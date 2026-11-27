@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-do</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560;9..144,650&family=Source+Sans+3:wght@400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app">
+      <header class="header">
+        <p class="eyebrow">A short list</p>
+        <h1>To-do</h1>
+        <p class="summary" id="summary" aria-live="polite">No tasks yet</p>
+      </header>
+
+      <form class="add-form" id="add-form">
+        <label class="sr-only" for="new-todo">New task</label>
+        <input
+          id="new-todo"
+          type="text"
+          name="task"
+          placeholder="What needs doing?"
+          maxlength="200"
+          autocomplete="off"
+          required
+        />
+        <button type="submit">Add</button>
+      </form>
+
+      <div class="filters" role="tablist" aria-label="Filter tasks">
+        <button type="button" class="filter is-active" data-filter="all" role="tab" aria-selected="true">
+          All
+        </button>
+        <button type="button" class="filter" data-filter="active" role="tab" aria-selected="false">
+          Active
+        </button>
+        <button type="button" class="filter" data-filter="done" role="tab" aria-selected="false">
+          Done
+        </button>
+      </div>
+
+      <ul class="list" id="list" aria-label="Tasks"></ul>
+      <p class="empty" id="empty" hidden>Nothing on this list.</p>
+    </main>
+    <script src="script.js"></script>
+  </body>
+</html>
