@@ -12,6 +12,7 @@ const filters = document.querySelectorAll(".filter");
 let todos = [];
 let filter = "all";
 let editingId = null;
+let db = null;
 let todosRef = null;
 
 const { firebaseConfig } = await import("./firebase-config.js").catch((error) => {
@@ -22,7 +23,7 @@ const { firebaseConfig } = await import("./firebase-config.js").catch((error) =>
 
 if (firebaseConfig) {
   const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
+  db = getDatabase(app);
   todosRef = ref(db, "todos");
 }
 
@@ -69,6 +70,7 @@ list.addEventListener("click", (event) => {
   }
 
   if (event.target.closest(".remove")) {
+    if (!db) return;
     editingId = null;
     remove(ref(db, `todos/${id}`)).then(clearStatus).catch(showError);
   }
