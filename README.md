@@ -1,6 +1,6 @@
 # To-do
 
-A small to-do site built with HTML, CSS, and JavaScript. Add a task, edit it, mark it done, or remove it. The list stays in the browser after a refresh.
+A small to-do site built with HTML, CSS, and JavaScript. Add a task, edit it, mark it done, or remove it. New tasks are saved in Firebase Realtime Database.
 
 ## Open it
 
@@ -20,7 +20,7 @@ Then visit http://127.0.0.1:8765.
 - Press **Remove** to delete a task.
 - Use **All**, **Active**, and **Done** to filter the list.
 
-Tasks are saved in `localStorage` under the key `todo-list`.
+Adding a task writes it under `todos` in Realtime Database. The list loads from that path, including after a refresh.
 
 ## Files
 

@@ -1,32 +1,35 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import { getDatabase, onValue, push, ref, remove, update } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-database.js";
 import { firebaseConfig } from "./firebase-config.js";
 
 const app = initializeApp(firebaseConfig);
-
-const STORAGE_KEY = "todo-list";
+const db = getDatabase(app);
+const todosRef = ref(db, "todos");
 
 const form = document.querySelector("#add-form");
 const input = document.querySelector("#new-todo");
 const list = document.querySelector("#list");
 const empty = document.querySelector("#empty");
 const summary = document.querySelector("#summary");
+const status = document.querySelector("#status");
 const filters = document.querySelectorAll(".filter");
 
-let todos = loadTodos();
+let todos = [];
 let filter = "all";
+let editingId = null;
 
-form.addEventListener("submit", (event) => {
+form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const text = input.value.trim();
   if (!text) return;
 
-  todos.unshift({
-    id: crypto.randomUUID(),
-    text,
-    done: false,
-  });
   input.value = "";
-  saveAndRender();
+  try {
+    await push(todosRef, { text, done: false });
+    clearStatus();
+  } catch (error) {
+    showError(error);
+  }
   input.focus();
 });
 
@@ -47,21 +50,14 @@ list.addEventListener("click", (event) => {
   if (!item) return;
   const id = item.dataset.id;
 
-  if (event.target.closest(".toggle")) {
-    const todo = todos.find((entry) => entry.id === id);
-    if (todo) todo.done = !todo.done;
-    saveAndRender();
-    return;
-  }
-
   if (event.target.closest(".edit")) {
     startEdit(item, id);
     return;
   }
 
   if (event.target.closest(".remove")) {
-    todos = todos.filter((entry) => entry.id !== id);
-    saveAndRender();
+    editingId = null;
+    remove(ref(db, `todos/${id}`)).then(clearStatus).catch(showError);
   }
 });
 
@@ -70,14 +66,19 @@ list.addEventListener("change", (event) => {
   const id = event.target.closest(".item").dataset.id;
   const todo = todos.find((entry) => entry.id === id);
   if (!todo) return;
-  todo.done = event.target.checked;
-  saveAndRender();
+  update(ref(db, `todos/${id}`), { done: event.target.checked })
+    .then(clearStatus)
+    .catch((error) => {
+      event.target.checked = todo.done;
+      showError(error);
+    });
 });
 
 function startEdit(item, id) {
   const todo = todos.find((entry) => entry.id === id);
   if (!todo || item.querySelector(".edit-input")) return;
 
+  editingId = id;
   const text = item.querySelector(".task-text");
   const field = document.createElement("input");
   field.className = "edit-input";
@@ -96,11 +97,18 @@ function startEdit(item, id) {
     closed = true;
     field.removeEventListener("keydown", onKeydown);
     field.removeEventListener("blur", onBlur);
-    if (save) {
-      const next = field.value.trim();
-      if (next) todo.text = next;
+    const next = field.value.trim();
+    editingId = null;
+
+    if (!save || !next || next === todo.text) {
+      render();
+      return;
     }
-    saveAndRender();
+
+    update(ref(db, `todos/${id}`), { text: next }).then(clearStatus).catch((error) => {
+      showError(error);
+      render();
+    });
   };
 
   const onKeydown = (event) => {
@@ -117,6 +125,7 @@ function startEdit(item, id) {
       const updated = field.value.trim();
       if (updated) todo.text = updated;
       closed = true;
+      editingId = null;
       return;
     }
     finish(true);
@@ -168,25 +177,34 @@ function render() {
   empty.hidden = shown.length > 0;
 }
 
-function saveAndRender() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(todos));
-  render();
+onValue(
+  todosRef,
+  (snapshot) => {
+    const value = snapshot.val() || {};
+    todos = Object.entries(value)
+      .map(([id, item]) => ({
+        id,
+        text: typeof item?.text === "string" ? item.text : "",
+        done: item?.done === true,
+      }))
+      .filter((todo) => todo.text)
+      .reverse();
+    clearStatus();
+    if (!editingId) render();
+  },
+  (error) => showError(error)
+);
+
+function showError(error) {
+  console.error(error);
+  status.hidden = false;
+  status.textContent =
+    "Firebase could not save the task. Allow read and write on todos in the Realtime Database rules.";
 }
 
-function loadTodos() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    if (!Array.isArray(saved)) return [];
-    return saved.filter(
-      (todo) =>
-        todo &&
-        typeof todo.id === "string" &&
-        typeof todo.text === "string" &&
-        typeof todo.done === "boolean"
-    );
-  } catch {
-    return [];
-  }
+function clearStatus() {
+  status.hidden = true;
+  status.textContent = "";
 }
 
 function escapeHtml(value) {
@@ -196,5 +214,3 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
 }
-
-render();

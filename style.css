@@ -62,9 +62,18 @@ body {
 }
 
 .summary {
-  margin: 0 0 28px;
+  margin: 0;
   color: var(--muted);
   font-size: 1.05rem;
+}
+
+.status {
+  margin: 8px 0 0;
+  color: var(--accent-deep);
+}
+
+.header {
+  margin-bottom: 28px;
 }
 
 .add-form {
