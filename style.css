@@ -209,6 +209,15 @@ body {
   background: #eadfd2;
 }
 
+.item-actions .save {
+  background: var(--accent);
+  color: #fffaf6;
+}
+
+.item-actions .save:hover {
+  background: var(--accent-deep);
+}
+
 .item-actions .remove:hover {
   background: #f3d7cc;
   color: var(--accent-deep);

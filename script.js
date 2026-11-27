@@ -69,6 +69,21 @@ list.addEventListener("click", (event) => {
     return;
   }
 
+  if (event.target.closest(".save")) {
+    const field = item.querySelector(".edit-input");
+    const next = field ? field.value.trim() : "";
+    editingId = null;
+    if (!db || !next) {
+      render();
+      return;
+    }
+    update(ref(db, `todos/${id}`), { text: next }).then(clearStatus).catch((error) => {
+      showError(error);
+      render();
+    });
+    return;
+  }
+
   if (event.target.closest(".remove")) {
     if (!db) return;
     editingId = null;
@@ -94,6 +109,9 @@ function startEdit(item, id) {
   if (!todo || item.querySelector(".edit-input")) return;
 
   editingId = id;
+  const editButton = item.querySelector(".edit");
+  editButton.textContent = "Save";
+  editButton.classList.replace("edit", "save");
   const text = item.querySelector(".task-text");
   const field = document.createElement("input");
   field.className = "edit-input";
